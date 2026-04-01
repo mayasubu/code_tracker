@@ -41,7 +41,7 @@ app.use('/admin-static', express.static(path.join(__dirname, 'admin-portal', 'di
 app.use('/student-static', express.static(path.join(__dirname, 'student-portal', 'dist', 'student-portal', 'browser')));
 
 // SPA Fallback for Admin
-app.get('/admin/*', (req, res) => {
+app.get('/admin/:splat*', (req, res) => {
     res.sendFile(path.join(__dirname, 'admin-portal', 'dist', 'index.html'));
 });
 app.get('/admin', (req, res) => {
@@ -49,7 +49,7 @@ app.get('/admin', (req, res) => {
 });
 
 // SPA Fallback for Student (Catch-all except /api)
-app.get('*', (req, res) => {
+app.get('/:splat*', (req, res) => {
     if (req.originalUrl.startsWith('/api')) {
         return res.status(404).json({ success: false, message: 'API Route Not Found' });
     }
