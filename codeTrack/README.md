@@ -45,32 +45,27 @@ git push -u origin main
 4. Under Database > Database Access, create a user and copy the exact connection string.
 5. Example: `mongodb+srv://<username>:<password>@cluster.mongodb.net/codetrack`
 
-### 3. Deploy Backend API and Static Hosting on Render
-To deploy the full-stack system, you must first build both frontend applications locally, push them to GitHub, and let Render host the Express server.
+### 3. Deploy to Render (Full-Stack Unified)
 
-1. First build the frontends locally (or configure Render to do so):
-```bash
-cd student-portal && npm install && npm run build
-cd ../admin-portal && npm install && npm run build
-```
-2. Go to [Render.com](https://render.com/).
-3. Click **New Web Service** and connect your GitHub repo.
-4. Settings:
-   - **Environment**: Node
-   - **Build Command**: `npm install`
-   - **Start Command**: `node app.js`
-5. Click on **Advanced** -> **Environment Variables** and add:
-   - `MONGO_URI` = `mongodb+srv://<username>:<password>@...`
-   - `SESSION_SECRET` = `very_secret_key_codetrack`
-   - `PORT` = `10000`
-6. Click **Deploy**.
+CodeTrack is configured for **unified deployment**, meaning your Node.js server will serve both the Student and Admin portals from a single URL. This is the most efficient and cost-effective way to host.
 
-### 4. Optional Vercel Hosting
-If you wish to host the SPAs entirely decoupled on Vercel, you can configure Vercel to point specifically to the `student-portal` or `admin-portal` directory and specify the Node API URL. However, the `app.js` server natively hosts them securely under one domain.
+1.  Connect your GitHub repository to [Render.com](https://render.com/).
+2.  Choose **New Web Service**.
+3.  Configure the following settings:
+    - **Runtime**: `Node`
+    - **Build Command**: `npm run build` (This automatically builds both portals)
+    - **Start Command**: `node app.js`
+4.  Click **Advanced** -> **Add Environment Variable**:
+    - `MONGO_URI`: Your MongoDB Atlas connection string.
+    - `SESSION_SECRET`: A long, random string for security.
+    - `PORT`: `10000` (optional, Render uses this by default).
+5.  Click **Deploy**.
+
+*Congratulations! Your platform is now live.*
 
 ---
 
-## Running Locally
+## 🛠️ Troubleshooting & Local Development
 
 1. Create a `.env` file in the root directory.
 2. Run `npm install` in the base directory.

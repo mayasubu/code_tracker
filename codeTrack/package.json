@@ -5,6 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "build:admin": "npm install --prefix admin-portal && npm run build --prefix admin-portal",
+    "build:student": "npm install --prefix student-portal && npm run build --prefix student-portal",
+    "build": "npm run build:admin && npm run build:student",
     "start": "node app.js"
   },
   "keywords": [],
