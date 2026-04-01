@@ -1,0 +1,64 @@
+<%- include('partials/header') %>
+
+<div class="flex-between mb-2">
+    <div>
+        <h2>Your Submissions</h2>
+        <p style="color: var(--text-muted); margin-top: 0.5rem;">Review your past code attempts and their statuses.</p>
+    </div>
+    <button onclick="loadSubmissions()" class="btn btn-outline">Refresh</button>
+</div>
+
+<div class="glass-panel">
+    <table>
+        <thead>
+            <tr>
+                <th>Problem</th>
+                <th>Difficulty</th>
+                <th>Status</th>
+                <th>Submitted On</th>
+            </tr>
+        </thead>
+        <tbody id="submissions-tbody">
+            <tr><td colspan="4" class="text-center">Loading submissions...</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<script>
+    function loadSubmissions() {
+        const tbody = document.getElementById('submissions-tbody');
+        tbody.innerHTML = '<tr><td colspan="4" class="text-center">Loading...</td></tr>';
+        
+        fetch('/api/submissions/my')
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    tbody.innerHTML = '';
+                    if (data.submissions.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="4" class="text-center">You have not made any submissions yet.</td></tr>';
+                        return;
+                    }
+                    
+                    data.submissions.forEach(sub => {
+                        const statusClass = sub.status === 'Accepted' ? 'badge-accepted' : (sub.status === 'Pending' ? 'badge-pending' : 'badge-rejected');
+                        const p = sub.problemId;
+                        const diffClass = p.difficulty === 'Easy' ? 'badge-easy' : (p.difficulty === 'Medium' ? 'badge-medium' : 'badge-hard');
+                        const date = new Date(sub.createdAt).toLocaleString();
+                        
+                        tbody.innerHTML += `
+                            <tr>
+                                <td><a href="/problems/${p._id}" style="color: var(--text-main); text-decoration: none; font-weight: 500;">${p.title}</a></td>
+                                <td><span class="badge ${diffClass}">${p.difficulty}</span></td>
+                                <td><span class="badge ${statusClass}">${sub.status}</span></td>
+                                <td style="color: var(--text-muted); font-size: 0.9rem;">${date}</td>
+                            </tr>
+                        `;
+                    });
+                }
+            });
+    }
+
+    document.addEventListener('DOMContentLoaded', loadSubmissions);
+</script>
+
+<%- include('partials/footer') %>

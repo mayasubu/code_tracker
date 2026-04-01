@@ -1,0 +1,75 @@
+<%- include('partials/header') %>
+
+<div class="flex-between mb-2">
+    <div>
+        <h2>Coding Problems</h2>
+        <p style="color: var(--text-muted); margin-top: 0.5rem;">Practice and improve your skills.</p>
+    </div>
+    <div>
+        <select id="difficulty-filter" class="form-control" style="width: auto; display: inline-block;">
+            <option value="">All Difficulties</option>
+            <option value="Easy">Easy</option>
+            <option value="Medium">Medium</option>
+            <option value="Hard">Hard</option>
+        </select>
+    </div>
+</div>
+
+<div class="glass-panel">
+    <table id="problems-table">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Difficulty</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody id="problems-tbody">
+            <tr><td colspan="3" class="text-center">Loading...</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const tbody = document.getElementById('problems-tbody');
+        const filter = document.getElementById('difficulty-filter');
+
+        const loadProblems = (diffStr) => {
+            const url = diffStr ? `/api/problems?difficulty=${diffStr}` : '/api/problems';
+            fetch(url)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        tbody.innerHTML = '';
+                        if (data.problems.length === 0) {
+                            tbody.innerHTML = '<tr><td colspan="3" class="text-center">No problems found.</td></tr>';
+                            return;
+                        }
+                        data.problems.forEach(p => {
+                            const badgeClass = p.difficulty === 'Easy' ? 'badge-easy' : (p.difficulty === 'Medium' ? 'badge-medium' : 'badge-hard');
+                            tbody.innerHTML += `
+                                <tr>
+                                    <td style="font-weight: 500;">${p.title}</td>
+                                    <td><span class="badge ${badgeClass}">${p.difficulty}</span></td>
+                                    <td>
+                                        <a href="/problems/${p._id}" class="btn btn-primary" style="padding: 0.4rem 1rem; font-size: 0.9rem; text-decoration: none;">Solve</a>
+                                    </td>
+                                </tr>
+                            `;
+                        });
+                    }
+                });
+        };
+
+        // Initial load
+        loadProblems('');
+
+        // Filter event
+        filter.addEventListener('change', (e) => {
+            loadProblems(e.target.value);
+        });
+    });
+</script>
+
+<%- include('partials/footer') %>

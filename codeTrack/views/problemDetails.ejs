@@ -1,0 +1,108 @@
+<%- include('partials/header') %>
+
+<div class="flex-between mb-2">
+    <div>
+        <h2 id="prob-title">Loading Problem...</h2>
+        <div class="mt-2" id="prob-badges"></div>
+    </div>
+    <a href="/problems" class="btn btn-outline" style="text-decoration: none;">&larr; Back to Problems</a>
+</div>
+
+<div style="display: flex; gap: 2rem;">
+    <!-- Problem Description Side -->
+    <div style="flex: 1;" class="glass-panel">
+        <h3 style="border-bottom: 1px solid var(--glass-border); padding-bottom: 1rem; margin-bottom: 1rem;">Description</h3>
+        <p id="prob-desc" style="color: var(--text-muted); line-height: 1.6;"></p>
+        
+        <h4 style="margin-top: 2rem; margin-bottom: 0.5rem; color: var(--text-main);">Sample Input</h4>
+        <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; font-family: monospace;" id="prob-input"></div>
+
+        <h4 style="margin-top: 1.5rem; margin-bottom: 0.5rem; color: var(--text-main);">Sample Output</h4>
+        <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; font-family: monospace;" id="prob-output"></div>
+    </div>
+
+    <!-- Code Editor Side -->
+    <div style="flex: 1;" class="glass-panel">
+        <h3 style="border-bottom: 1px solid var(--glass-border); padding-bottom: 1rem; margin-bottom: 1rem;">Environment</h3>
+        <textarea id="code-editor" class="code-editor" placeholder="Write your code here..."></textarea>
+        
+        <div class="flex-between mt-2">
+            <span id="submit-status" style="font-weight: 500;"></span>
+            <button id="submit-btn" class="btn btn-primary" onclick="submitCode()">Run & Submit Data</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const problemId = '<%= problemId %>';
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        // Fetch Problem Details
+        fetch(`/api/problems/${problemId}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    const p = data.problem;
+                    document.getElementById('prob-title').innerText = p.title;
+                    const badgeClass = p.difficulty === 'Easy' ? 'badge-easy' : (p.difficulty === 'Medium' ? 'badge-medium' : 'badge-hard');
+                    let badgesHtml = `<span class="badge ${badgeClass}">${p.difficulty}</span> `;
+                    p.tags.forEach(t => {
+                        badgesHtml += `<span class="badge" style="background: rgba(255,255,255,0.1); color: var(--text-muted);">${t}</span> `;
+                    });
+                    document.getElementById('prob-badges').innerHTML = badgesHtml;
+                    
+                    document.getElementById('prob-desc').innerText = p.description;
+                    document.getElementById('prob-input').innerText = p.sampleInput;
+                    document.getElementById('prob-output').innerText = p.sampleOutput;
+                }
+            });
+    });
+
+    function submitCode() {
+        const code = document.getElementById('code-editor').value;
+        if (!code.trim()) {
+            alert('Please enter some code to submit!');
+            return;
+        }
+        
+        const btn = document.getElementById('submit-btn');
+        const statusSpan = document.getElementById('submit-status');
+        
+        btn.innerText = 'Evaluating...';
+        btn.disabled = true;
+        statusSpan.innerText = 'Running tests...';
+        statusSpan.style.color = 'var(--text-muted)';
+        
+        fetch('/api/submissions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ problemId, code })
+        })
+        .then(res => res.json())
+        .then(data => {
+            btn.innerText = 'Run & Submit Data';
+            btn.disabled = false;
+            
+            if (data.success) {
+                const sub = data.submission;
+                statusSpan.innerText = `Result: ${sub.status}`;
+                if (sub.status === 'Accepted') {
+                    statusSpan.style.color = 'var(--success)';
+                } else {
+                    statusSpan.style.color = 'var(--danger)';
+                }
+            } else {
+                statusSpan.innerText = `Error: ${data.message}`;
+                statusSpan.style.color = 'var(--danger)';
+            }
+        })
+        .catch(err => {
+            btn.innerText = 'Run & Submit Data';
+            btn.disabled = false;
+            statusSpan.innerText = 'Network error occurred';
+            statusSpan.style.color = 'var(--danger)';
+        });
+    }
+</script>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,146 @@
+<%- include('partials/header') %>
+
+<div class="flex-between mb-2">
+    <div>
+        <h2>Admin Management Portal</h2>
+        <p style="color: var(--text-muted); margin-top: 0.5rem;">Manage coding problems and monitor student submissions.</p>
+    </div>
+</div>
+
+<div style="display: flex; gap: 2rem;">
+    <!-- Left: Create Problem Form -->
+    <div style="flex: 1;" class="glass-panel">
+        <h3 class="mb-2">Create New Problem</h3>
+        <form id="create-problem-form" onsubmit="createProblem(event)">
+            <div class="form-group">
+                <label>Title</label>
+                <input type="text" id="p-title" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label>Difficulty</label>
+                <select id="p-difficulty" class="form-control" required>
+                    <option value="Easy">Easy</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Hard">Hard</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Description</label>
+                <textarea id="p-desc" class="form-control" rows="4" required></textarea>
+            </div>
+            <div class="form-group">
+                <label>Sample Input</label>
+                <textarea id="p-input" class="form-control" rows="2" required></textarea>
+            </div>
+            <div class="form-group">
+                <label>Sample Output</label>
+                <textarea id="p-output" class="form-control" rows="2" required></textarea>
+            </div>
+            <div class="form-group">
+                <label>Tags (Comma separated)</label>
+                <input type="text" id="p-tags" class="form-control" placeholder="Array, Math, Strings">
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Create Problem</button>
+        </form>
+        <div id="admin-notify" class="mt-2 text-center" style="font-weight: 500;"></div>
+    </div>
+
+    <!-- Right: Manage Existing Problems -->
+    <div style="flex: 1;" class="glass-panel">
+        <h3 class="mb-2">Existing Problems</h3>
+        <div style="max-height: 600px; overflow-y: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Problem</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="admin-problems-list">
+                    <tr><td colspan="2" class="text-center">Loading...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    function loadAdminProblems() {
+        fetch('/api/problems')
+            .then(res => res.json())
+            .then(data => {
+                const tbody = document.getElementById('admin-problems-list');
+                if (data.success) {
+                    tbody.innerHTML = '';
+                    if (data.problems.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="2" class="text-center">No problems engineered yet.</td></tr>';
+                        return;
+                    }
+                    data.problems.forEach(p => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td style="font-weight: 500;">${p.title} <br><span style="font-size: 0.8rem; font-weight: 400; color: var(--text-muted);">${p.difficulty}</span></td>
+                            <td>
+                                <button onclick="deleteProblem('${p._id}')" class="btn btn-danger" style="padding: 0.3rem 0.6rem; font-size: 0.85rem;">Delete</button>
+                            </td>
+                        `;
+                        tbody.appendChild(row);
+                    });
+                }
+            });
+    }
+
+    function createProblem(e) {
+        e.preventDefault();
+        const btn = e.target.querySelector('button[type="submit"]');
+        btn.disabled = true;
+        
+        const data = {
+            title: document.getElementById('p-title').value,
+            difficulty: document.getElementById('p-difficulty').value,
+            description: document.getElementById('p-desc').value,
+            sampleInput: document.getElementById('p-input').value,
+            sampleOutput: document.getElementById('p-output').value,
+            tags: document.getElementById('p-tags').value
+        };
+
+        fetch('/api/problems', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+        .then(res => res.json())
+        .then(result => {
+            btn.disabled = false;
+            const notify = document.getElementById('admin-notify');
+            if (result.success) {
+                notify.innerText = 'Problem created successfully!';
+                notify.style.color = 'var(--success)';
+                e.target.reset(); // clear form
+                loadAdminProblems(); // refresh list
+            } else {
+                notify.innerText = 'Error: ' + result.message;
+                notify.style.color = 'var(--danger)';
+            }
+            setTimeout(() => notify.innerText = '', 3000);
+        });
+    }
+
+    function deleteProblem(id) {
+        if (!confirm('Are you sure you want to delete this problem?')) return;
+        
+        fetch('/api/problems/' + id, { method: 'DELETE' })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    loadAdminProblems();
+                } else {
+                    alert('Error deleting problem');
+                }
+            });
+    }
+
+    document.addEventListener('DOMContentLoaded', loadAdminProblems);
+</script>
+
+<%- include('partials/footer') %>

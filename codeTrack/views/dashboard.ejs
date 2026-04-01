@@ -1,0 +1,90 @@
+<%- include('partials/header') %>
+
+<div class="flex-between mb-2">
+    <div>
+        <h2>Welcome back, <span style="color: var(--accent);"><%= user.name %></span></h2>
+        <p style="color: var(--text-muted); margin-top: 0.5rem;"><%= user.registerNumber %> • <%= user.department %> Department</p>
+    </div>
+</div>
+
+<div class="stats-grid">
+    <div class="glass-panel stat-card">
+        <div class="stat-value" id="stat-total">--</div>
+        <div class="stat-label">Total Problems</div>
+    </div>
+    <div class="glass-panel stat-card">
+        <div class="stat-value" id="stat-attempted" style="color: #f59e0b;">--</div>
+        <div class="stat-label">Attempted Problems</div>
+    </div>
+    <div class="glass-panel stat-card">
+        <div class="stat-value" id="stat-solved" style="color: var(--success);">--</div>
+        <div class="stat-label">Successfully Solved</div>
+    </div>
+    <div class="glass-panel stat-card">
+        <div class="stat-value" id="stat-progress">--%</div>
+        <div class="stat-label">Progress Rate</div>
+    </div>
+</div>
+
+<div class="glass-panel">
+    <h3 class="mb-2">Recent Submissions</h3>
+    <table id="recent-submissions-table">
+        <thead>
+            <tr>
+                <th>Problem</th>
+                <th>Status</th>
+                <th>Time</th>
+            </tr>
+        </thead>
+        <tbody id="db-submissions-list">
+            <tr><td colspan="3" class="text-center text-muted">Loading submissions...</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<script>
+    // AJAX to load dashboard statistics without page refresh
+    document.addEventListener('DOMContentLoaded', () => {
+        // Fetch stats
+        fetch('/api/submissions/stats')
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('stat-total').innerText = data.stats.totalProblems;
+                    document.getElementById('stat-attempted').innerText = data.stats.attempted;
+                    document.getElementById('stat-solved').innerText = data.stats.solved;
+                    
+                    const progress = data.stats.totalProblems > 0 
+                        ? Math.round((data.stats.solved / data.stats.totalProblems) * 100) 
+                        : 0;
+                    document.getElementById('stat-progress').innerText = progress + '%';
+                }
+            });
+
+        // Fetch recent submissions
+        fetch('/api/submissions/my')
+            .then(res => res.json())
+            .then(data => {
+                const tbody = document.getElementById('db-submissions-list');
+                if (data.success && data.submissions.length > 0) {
+                    tbody.innerHTML = '';
+                    const recent = data.submissions.slice(0, 5); // Only show latest 5
+                    recent.forEach(sub => {
+                        const statusClass = sub.status === 'Accepted' ? 'badge-accepted' : (sub.status === 'Pending' ? 'badge-pending' : 'badge-rejected');
+                        const date = new Date(sub.createdAt).toLocaleString();
+                        tbody.innerHTML += `
+                            <tr>
+                                <td><a href="/problems/${sub.problemId._id}" style="color:var(--text-main); text-decoration:none;">${sub.problemId.title}</a></td>
+                                <td><span class="badge ${statusClass}">${sub.status}</span></td>
+                                <td style="color:var(--text-muted); font-size: 0.9rem;">${date}</td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="3" class="text-center text-muted">No submissions yet. Start coding!</td></tr>';
+                }
+            });
+    });
+</script>
+
+<%- include('partials/footer') %>
