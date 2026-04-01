@@ -1,0 +1,9 @@
+{
+  "name": "codetrack-root",
+  "version": "1.0.0",
+  "description": "Root delegation for CodeTrack platform",
+  "scripts": {
+    "build": "npm install --prefix codeTrack && npm run build --prefix codeTrack",
+    "start": "node codeTrack/app.js"
+  }
+}

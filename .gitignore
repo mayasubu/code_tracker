@@ -1,0 +1,19 @@
+# Global Dependencies
+node_modules/
+dist/
+
+# Local Environment
+.env
+*.local
+
+# IDES
+.vscode/
+.idea/
+
+# Subfolders
+codeTrack/node_modules/
+codeTrack/admin-portal/node_modules/
+codeTrack/student-portal/node_modules/
+codeTrack/admin-portal/dist/
+codeTrack/student-portal/dist/
+codeTrack/student-portal/.angular/

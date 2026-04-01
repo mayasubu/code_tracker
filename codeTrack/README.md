@@ -47,19 +47,22 @@ git push -u origin main
 
 ### 3. Deploy to Render (Full-Stack Unified)
 
-CodeTrack is configured for **unified deployment**, meaning your Node.js server will serve both the Student and Admin portals from a single URL. This is the most efficient and cost-effective way to host.
+**Important Update:** I've added a root-level `package.json` to handle the `codeTrack` subfolder automatically. This ensures Render finds everything correctly without changing complex settings.
 
 1.  Connect your GitHub repository to [Render.com](https://render.com/).
 2.  Choose **New Web Service**.
 3.  Configure the following settings:
     - **Runtime**: `Node`
-    - **Build Command**: `npm run build` (This automatically builds both portals)
-    - **Start Command**: `node app.js`
+    - **Build Command**: `npm run build`
+    - **Start Command**: `npm start`
 4.  Click **Advanced** -> **Add Environment Variable**:
     - `MONGO_URI`: Your MongoDB Atlas connection string.
-    - `SESSION_SECRET`: A long, random string for security.
-    - `PORT`: `10000` (optional, Render uses this by default).
+    - `SESSION_SECRET`: A long, random string.
+    - `PORT`: `10000`
 5.  Click **Deploy**.
+
+> [!NOTE]
+> If you'd rather not use my root-level delegation, you can alternatively set the **Root Directory** setting on Render to `codeTrack`. But with these new files, it should "just work".
 
 *Congratulations! Your platform is now live.*
 
